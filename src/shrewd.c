@@ -1,3 +1,4 @@
+#include "fin_parser.h"
 #include "parser.h"
 
 void init_shell(int argc, char* argv[])
@@ -13,7 +14,9 @@ void init_shell(int argc, char* argv[])
 		{
 			call_help(argv);
 			exit(EXIT_SUCCESS);
-		}	
+		}
+		else if (strncmp(argv[1], "fin", strlen(argv[1])) == 0)
+			finnit_shell();
 	}
 	else
 		run_command();

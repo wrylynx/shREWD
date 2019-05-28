@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-g -Wall
-HEADERS=include/ include/parser.h
+HEADERS=include/ include/parser.h include/fin_parser.h
 SOURCE=src/shrewd.c
 TARGET=shrewd
 
