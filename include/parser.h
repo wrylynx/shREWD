@@ -167,10 +167,12 @@ void run_command()
 	int status;
 	
 	char cwd[1024];
-	
+
+	system("clear");
+
 	do 
 	{	
-		printf("%s @ %s\n :: ", getenv("USER"), getcwd(cwd, sizeof(cwd)));
+		printf("%s @ %s\n >:) ", getenv("USER"), getcwd(cwd, sizeof(cwd)));
 		
 		lines = readline();
 		args = parse(lines);
