@@ -1,5 +1,58 @@
 #include "commands.h"
 
+int dispatch(char **args)
+{
+	int status;
+	pid_t pid;
+	
+	/* start new process */
+	pid = fork();
+
+	/* if fork() is successful */
+	if (pid == 0)
+	{
+		/* execute arguments; handle exception of argument execution failure */
+		if (execvp(args[0], args) == -1)
+			perror("shrewd");
+		/* exit fail regardless of success executing */
+		exit(EXIT_FAILURE);
+	}
+	/* if there is execution exception */
+	else if (pid < 0) 
+	{
+		perror("shrewd");
+	}
+	/* if there is timeout error */
+	else
+	{
+		do
+		{
+			/* suspend execution, wait for process state to change */
+			/* return if child has stopped */
+			waitpid(pid, &status, WUNTRACED);
+			/* continue while the process hasn't exited or raised a signal */
+		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+	}
+	return EXIT_FAILURE;
+}
+
+int execute(char **args)
+{
+	/* exception: if no input - empty string */
+	if (args[0] == NULL)
+		return EXIT_FAILURE;
+
+	/* rule: search list of commands to find match with input string */
+	for (int i = 0; i < num_commands(); i++)
+	{
+		/* if match is found, return command and execute */
+		if (strncmp(args[0], command_list[i], strlen(args[0])) == 0)
+			return (*command_calls[i])(args);
+	}
+
+	return dispatch(args);
+}
+
 char *readline()
 {
 	/* initial memory allocation */
@@ -103,60 +156,8 @@ char **parse(char *line)
 	}
 	/* last position is cleared */
 	tokens[position] = NULL;
+
 	return tokens;
-}
-
-int dispatch(char **args)
-{
-	int status;
-	pid_t pid;
-	
-	/* start new process */
-	pid = fork();
-
-	/* if fork() is successful */
-	if (pid == 0)
-	{
-		/* execute arguments; handle exception of argument execution failure */
-		if (execvp(args[0], args) == -1)
-			perror("shrewd");
-		/* exit fail regardless of success executing */
-		exit(EXIT_FAILURE);
-	}
-	/* if there is execution exception */
-	else if (pid < 0) 
-	{
-		perror("shrewd");
-	}
-	/* if there is timeout error */
-	else
-	{
-		do
-		{
-			/* suspend execution, wait for process state to change */
-			/* return if child has stopped */
-			waitpid(pid, &status, WUNTRACED);
-			/* continue while the process hasn't exited or raised a signal */
-		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-	}
-	return EXIT_FAILURE;
-}
-
-int execute(char **args)
-{
-	/* exception: if no input - empty string */
-	if (args[0] == NULL)
-		return EXIT_FAILURE;
-
-	/* rule: search list of commands to find match with input string */
-	for (int i = 0; i < num_commands(); i++)
-	{
-		/* if match is found, return command and execute */
-		if (strncmp(args[0], command_list[i], strlen(args[0])) == 0)
-			return (*command_calls[i])(args);
-	}
-
-	return dispatch(args);
 }
 
 void run_command()
@@ -165,9 +166,10 @@ void run_command()
 	char **args;
 	int status;
 	
+	char cwd[1024];
+	
 	do 
 	{	
-		char cwd[1024];
 		printf("%s @ %s\n :: ", getenv("USER"), getcwd(cwd, sizeof(cwd)));
 		
 		lines = readline();

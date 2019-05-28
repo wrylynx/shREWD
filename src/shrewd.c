@@ -17,7 +17,6 @@ void init_shell(int argc, char* argv[])
 	}
 	else
 	{	
-		system("clear");
 		run_command();
 	}
 }
